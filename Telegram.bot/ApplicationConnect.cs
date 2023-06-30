@@ -14,6 +14,7 @@ namespace BOT
 {
     internal class ApplicationConnect : DbContext
     {
+        public static TreningProgram TreningCreatedActual = new TreningProgram();
         public DbSet<BotUser> Users { get; set; } 
         public DbSet<TreningProgram> Treninng { get; set; }
 

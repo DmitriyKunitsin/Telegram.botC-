@@ -11,10 +11,10 @@ namespace BOT
         public int Id { get; set; }
         public string Name { get; set; }
         public string UserName { get; set; }
-        public long UserID { get; set; }
-        public int RoleID { get; set; }
-        public long ChatID { get; set; }
-        public bool notificationEn { get; set; }
+        public long UserID { get; set; } 
+        public int? RoleID { get; set; } 
+        public long? ChatID { get; set; }
+        public bool? notificationEn { get; set; }
         
     }
 }

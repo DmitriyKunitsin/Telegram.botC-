@@ -12,7 +12,6 @@ using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bots.Http;
-
 using static System.Net.Mime.MediaTypeNames;
 
 namespace BOT
@@ -23,7 +22,6 @@ namespace BOT
         private const string TEXT_1 = "Help me";
         private const string TEXT_2 = "Зарегистрироваться";
         private const string TEXT_3 = "Мои курсы тренировок";
-        private const string TEXT_4 = "Опрос про Киселя";
         private string _token;
         TelegramBotClient botClient;
         public TelegramBotHelper(string token)
@@ -60,97 +58,14 @@ namespace BOT
             }
         }
 
-        private async void processUpdate(Update update)
+        private async void processUpdate(Update? update)
         {
-            #region Created Trening
-            try
-            {
-
-                List<TreningProgram> vars = new List<TreningProgram>();
-                var text = update.Message.Text;
-                var chatID = update.Message.Chat.Id;
-                var chatName = update.Message.Chat.FirstName;
-
-                if (text == "Создать программу")
-                {
-                    await botClient.SendTextMessageAsync(chatID, "Название программы",
-                    parseMode: default,
-                    replyMarkup: new ForceReplyMarkup { Selective = true });
-                    Console.WriteLine(chatName +" на "+ 1+ " этапе создания программы");
-                    return;
-                }
-                if (update.Message.ReplyToMessage != null &&
-                    update.Message.ReplyToMessage.Text.Contains("Название программы"))
-                {
-                    string msg = update.Message.Text;
-                    vars.Add(new TreningProgram { TreningName = msg });
-                    await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
-                    await botClient.SendTextMessageAsync(chatID, "Какие группы мышц",
-                    parseMode: default,
-                    replyMarkup: new ForceReplyMarkup { Selective = true });
-                    Console.WriteLine(chatName + " на " + 2 + " этапе создания программы");
-                    return;
-                }
-                if (update.Message.ReplyToMessage != null &&
-                    update.Message.ReplyToMessage.Text.Contains("Какие группы мышц"))
-                {
-                    string msg = update.Message.Text;
-                    vars.Add(new TreningProgram { GroupMuscle = msg });
-                    await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
-                    await botClient.SendTextMessageAsync(chatID, "Сколько упражнений будет в твоей программе?",
-                    parseMode: default,
-                    replyMarkup: new ForceReplyMarkup { Selective = true });
-                    Console.WriteLine(chatName + " на " + 3 + " этапе создания программы");
-                    return;
-                }
-                if (update.Message.ReplyToMessage != null &&
-                    update.Message.ReplyToMessage.Text.Contains("Сколько упражнений будет в твоей программе?"))
-                {
-                    string msg = update.Message.Text;
-                    try
-                    {
-                        vars.Add(new TreningProgram { CountExercises = Convert.ToInt32(msg) });
-                        await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
-                        await botClient.SendTextMessageAsync(chatID, "Сколько повторений?",
-                        parseMode: default,
-                        replyMarkup: new ForceReplyMarkup { Selective = true });
-                        Console.WriteLine(chatName + " на " + 4 + " этапе создания программы");
-                        return;
-                    }
-                    catch
-                    {
-                        botClient.SendTextMessageAsync(chatID, "Необходимо вводить цифры, начни сначала");
-                        await botClient.SendTextMessageAsync(chatID, "Название программы",
-                        parseMode: default,
-                        replyMarkup: new ForceReplyMarkup { Selective = true });
-                    }
-                }
-                if (update.Message.ReplyToMessage != null &&
-                    update.Message.ReplyToMessage.Text.Contains("Сколько повторений?"))
-                {
-                    string msg = update.Message.Text;
-                    vars.Add(new TreningProgram { CountRepertitions = Convert.ToInt32(msg) });
-                    await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
-                    await botClient.SendTextMessageAsync(chatID, "Готово");
-                    Console.WriteLine(chatName + " на " + 5 + " этапе создания программы");
-                    Console.WriteLine(vars);
-                    return;
-                }
-            }
-            catch 
-            {
-                var chatID = update.Message.Chat.Id;
-                botClient.SendTextMessageAsync(chatID, "Ты все сломал, давай сначала");
-            }
-
-            #endregion
-
             #region Work in update.type
-
 
             switch (update.Type)
             {
                 case Telegram.Bot.Types.Enums.UpdateType.Message:
+                    var vars = ApplicationConnect.TreningCreatedActual;
                     var chatID = update.Message.Chat.Id;
                     var text = update.Message.Text;
                     var ChatName = update.Message.Chat.FirstName;
@@ -161,7 +76,7 @@ namespace BOT
                                 replyMarkup: GetButton());
                             break;
                         case "Help me":
-                            botClient.SendTextMessageAsync(chatID, 
+                            await botClient.SendTextMessageAsync(chatID, 
                                 "Контента не подвезли, пока что");
                             break;
                         case "Зарегистрироваться":
@@ -170,7 +85,7 @@ namespace BOT
                         case "Мои курсы тренировок":
                             if (ResitrTrueOrFalse(chatID) != true)
                             {
-                                botClient.SendTextMessageAsync(chatID, 
+                                await botClient.SendTextMessageAsync(chatID, 
                                     "Сначала пройдите регистрацию");
                             }
                             else
@@ -189,15 +104,16 @@ namespace BOT
                                         "Нет, не считаю, но пидор тот еще"
                             });
                             break;
-
                         default:
-                            botClient.SendTextMessageAsync(chatID, "/start для начала");
+                          await  botClient.SendTextMessageAsync(chatID, "/start для начала");
                             break;
+                        
                     }
                     break;
                 case Telegram.Bot.Types.Enums.UpdateType.CallbackQuery:
                     switch (update.CallbackQuery.Data)
                     {
+                        
                         case "11":
                             await botClient.SendTextMessageAsync(update.CallbackQuery.Message.Chat.Id, 
                                 "Ты выбрал 1.1");
@@ -225,16 +141,110 @@ namespace BOT
                     }
                     break;
                 case Telegram.Bot.Types.Enums.UpdateType.Poll:
-                    var test = update.Poll.Options;
+                    var test = update.PollAnswer;//update.Poll.Options;
                     Console.WriteLine($"Прилетел Pool #Voter Count# меняет 0 на 1 на выбранном");
                     break;
                 default:
                     Console.WriteLine(update.Type + " Not ipmlemented");
                     break;
             }
+            #endregion
+            #region Created Trening
+            try
+            {
+
+                var vars = ApplicationConnect.TreningCreatedActual;
+                var text = update.Message.Text;
+                var chatID = update.Message.Chat.Id;
+                var chatName = update.Message.Chat.FirstName;
+
+                if (update.Message.Text == "Создать программу")
+                {
+
+                    await botClient.SendTextMessageAsync(chatID, "Название программы",
+                    parseMode: default,
+                    replyMarkup: new ForceReplyMarkup { Selective = true });
+                    Console.WriteLine(chatName + " на " + 1 + " этапе создания программы");
+                    return;
+                }
+                if (update.Message.ReplyToMessage != null &&
+                    update.Message.ReplyToMessage.Text.Contains("Название программы"))
+                {
+                    string msg = update.Message.Text;
+                    if (TreningTrueOrFalse(chatID, msg) == true) 
+                    {
+                        await botClient.SendTextMessageAsync(chatID, "Такое название уже есть, придумай новое");
+                        await botClient.SendTextMessageAsync(chatID, "Название программы",
+                        parseMode: default,
+                        replyMarkup: new ForceReplyMarkup { Selective = true });
+                        return;
+                    }
+                    else
+                    {
+                        vars.TreningName = msg;
+                        await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
+                        await botClient.SendTextMessageAsync(chatID, "Какие группы мышц",
+                        parseMode: default,
+                        replyMarkup: new ForceReplyMarkup { Selective = true });
+                        Console.WriteLine(chatName + " на " + 2 + " этапе создания программы");
+                        return;
+                    }
+                }
+                if (update.Message.ReplyToMessage != null &&
+                    update.Message.ReplyToMessage.Text.Contains("Какие группы мышц"))
+                {
+                    string msg = update.Message.Text;
+                    vars.GroupMuscle = msg;
+                    await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
+                    await botClient.SendTextMessageAsync(chatID, "Сколько упражнений будет в твоей программе?",
+                    parseMode: default,
+                    replyMarkup: new ForceReplyMarkup { Selective = true });
+                    Console.WriteLine(chatName + " на " + 3 + " этапе создания программы");
+                    return;
+                }
+                if (update.Message.ReplyToMessage != null &&
+                    update.Message.ReplyToMessage.Text.Contains("Сколько упражнений будет в твоей программе?"))
+                {
+                    string msg = update.Message.Text;
+                    try
+                    {
+                        vars.CountExercises = Convert.ToInt32(msg);
+                        await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg);
+                        await botClient.SendTextMessageAsync(chatID, "Сколько повторений?",
+                        parseMode: default,
+                        replyMarkup: new ForceReplyMarkup { Selective = true });
+                        Console.WriteLine(chatName + " на " + 4 + " этапе создания программы");
+                        return;
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(chatID, "Необходимо вводить цифры, начни сначала");
+                        await botClient.SendTextMessageAsync(chatID, "Название программы",
+                        parseMode: default,
+                        replyMarkup: new ForceReplyMarkup { Selective = true });
+                    }
+                }
+                if (update.Message.ReplyToMessage != null &&
+                    update.Message.ReplyToMessage.Text.Contains("Сколько повторений?"))
+                {
+                    string msg = update.Message.Text;
+                    vars.CountRepertitions = Convert.ToInt32(msg);
+                    await botClient.SendTextMessageAsync(chatID, "Записал Как :" + msg, replyMarkup: GetButton());
+                    GetDateTreningProgram(vars, update);
+                    Console.WriteLine(chatName + " на " + 5 + " этапе создания программы");
+                    Console.WriteLine(vars);
+                    return;
+                }
+            }
+            catch
+            {
+                var chatID = update.Message.Chat.Id;
+                await botClient.SendTextMessageAsync(chatID, "Ты все сломал, давай сначала /start");
+            }
+
+            #endregion
         }
-        #endregion
-     
+
         #region Methods buttons
         public IReplyMarkup? GetInlinerDialog()
         {
@@ -263,8 +273,7 @@ namespace BOT
             new(new[]
             {
                 new KeyboardButton[] { TEXT_1,TEXT_2 },
-                             new KeyboardButton[] { TEXT_3},
-                             new KeyboardButton[] { TEXT_4}
+                             new KeyboardButton[] { TEXT_3}
             })
             {
                 ResizeKeyboard = true
@@ -298,6 +307,7 @@ namespace BOT
         #region work in data methods
         private async void Registaration(Update update)
         {
+            ApplicationConnect connect = new ApplicationConnect();
             var ChatId = update.Message.Chat.Id;
             var ChatName = update.Message.Chat.FirstName;
             SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
@@ -343,7 +353,6 @@ namespace BOT
         
         private bool  ResitrTrueOrFalse(long chatId)
         {
-
             SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
             conn.Open();
             string search = $"SELECT UserID FROM users WHERE UserID={chatId}";
@@ -352,9 +361,54 @@ namespace BOT
             var output = result.HasRows;
             return output;
         }
+        private bool TreningTrueOrFalse(long chatId, string treningName)
+        {
+            SqlDataReader reader = null;
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            string search = $"SELECT UserID,TreningName FROM Treninng WHERE UserID={chatId}";
+            SqlCommand command = new SqlCommand(search, conn);
+            reader = command.ExecuteReader();
+            bool output = false;
+            while (reader.Read()) 
+            {
+               var res = reader.GetString(1);
+                if(treningName == res)
+                {
+                     output = true;
+                    break;
+                }
+            }
+            return output;
+        }
         private async void CreatTrening() 
         {
             
+        }
+        private async void GetDateTreningProgram(TreningProgram vars, Update update)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            try
+            {
+                string textInputList = $"Вы успешно создали программу \nНазвание : {vars.TreningName} \nГруппа мышц : {vars.GroupMuscle}" +
+                    $"\nКолличество упражнений : {vars.CountExercises}\nКолличество повторений : {vars.CountRepertitions}";
+                Console.WriteLine($"Создал программу {update.Message.Chat.FirstName}");
+                string addTreningUsers = "INSERT INTO Treninng (Name,UserID,UserName,TreningName,GroupMuscle,CountExercises,CountRepertitions)" +
+                    " VALUES (@Name, @UserID , @UserName,@TreningName,@GroupMuscle,@CountExercises,@CountRepertitions)";
+                SqlCommand comm = new SqlCommand(addTreningUsers, conn);
+                comm.Parameters.AddWithValue("@Name", update.Message.Chat.FirstName);
+                comm.Parameters.AddWithValue("@UserName", update.Message.Chat.Username);
+                comm.Parameters.AddWithValue("@UserID", update.Message.Chat.Id);
+                comm.Parameters.AddWithValue("@TreningName", vars.TreningName);
+                comm.Parameters.AddWithValue("@GroupMuscle", vars.GroupMuscle);
+                comm.Parameters.AddWithValue("@CountExercises", vars.CountExercises);
+                comm.Parameters.AddWithValue("@CountRepertitions", vars.CountRepertitions);
+                await comm.ExecuteNonQueryAsync();
+                await botClient.SendTextMessageAsync(update.Message.Chat.Id, textInputList);
+            }
+            catch (Exception ex) { Console.WriteLine(ex.Message); }
+            finally { conn.Close(); }
         }
         #endregion
     }
