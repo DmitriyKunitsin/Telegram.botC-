@@ -63,15 +63,5 @@ namespace BOT
             this.CountExercises = 0;
             this.CountRepertitions = 0;
         }
-        public TreningProgram(string treingName, string groupName, int countExer , int countReper ) 
-        {
-            this.Name = string.Empty;
-            this.UserName= string.Empty;
-            this.UserID = 0;
-            this.TreningName = treingName;
-            this.GroupMuscle = groupName;
-            this.CountExercises = countExer ;
-            this.CountRepertitions = countReper ;
-        }
     }
 }
