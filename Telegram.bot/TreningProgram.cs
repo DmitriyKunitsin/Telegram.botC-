@@ -11,6 +11,7 @@ namespace BOT
     {
         public int Id { get; set; }
         private string name { get; set; }
+        private int numberName { get; set; }
         private string userName { get; set; }
         private long userID { get; set; }
         private string treningName { get; set; }
@@ -22,6 +23,11 @@ namespace BOT
         { 
             get { return name; }
             set { name = value; }
+        }
+        public int NumberName
+        {
+            get { return numberName; }
+            set { numberName = value; }
         }
         public string UserName 
         {
@@ -56,6 +62,7 @@ namespace BOT
         public TreningProgram()
         {
             this.Name = string.Empty;
+            this.NumberName = 0;
             this.UserName = string.Empty;
             this.UserID = 0;
             this.TreningName = string.Empty;

@@ -16,6 +16,7 @@ namespace BOT
     {
         public static TreningProgram TreningCreatedActual = new TreningProgram();
         public static TreningExercises ExecisesCratedActual = new TreningExercises();
+        public static string stringTrenName { get; set; }
         public DbSet<BotUser> Users { get; set; } 
         public DbSet<TreningProgram> Treninng { get; set; }
         public DbSet<TreningExercises> Exercises { get; set; }

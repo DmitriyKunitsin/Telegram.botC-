@@ -4,7 +4,10 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bots.Http;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace BOT
@@ -73,6 +76,38 @@ namespace BOT
                 })
                 { ResizeKeyboard = true };
             return replyKeyboardMarkup;
+        }
+        public static IReplyMarkup? GetButtonsRedactorWeight()
+        {
+            ReplyKeyboardMarkup replyKeyboardMarkup =
+                new(new[]
+                {
+                    new KeyboardButton[] {"Назад"},
+                    new KeyboardButton[] {"Редактировать вес"}
+                })
+                { ResizeKeyboard = true };
+            return replyKeyboardMarkup;
+        }
+        public static IReplyMarkup? DynamicButtonsTraining(string button) 
+        {
+            ReplyKeyboardMarkup replyKeyboardMarkup =
+                new(new[]
+                {
+                    new KeyboardButton[] {button}
+                })
+                { ResizeKeyboard = true };
+            return replyKeyboardMarkup;
+        }
+        public static InlineKeyboardMarkup GetInlineKeyboardButtons(long chatID,Update update,
+            TelegramBotClient botClient,string trenName)
+        {
+            string[] strings =  DataWorker.GetStringsExecises(trenName,chatID);
+            var list = new List<List<InlineKeyboardButton>>();
+
+            for (int i = 0; i < strings.Length; i += 2)
+                list.Add(new List<InlineKeyboardButton>(strings.Skip(i).Take(2).Select(s => InlineKeyboardButton.WithCallbackData(s))));
+            var inline = new InlineKeyboardMarkup(list);
+            return inline;
         }
     }
 }

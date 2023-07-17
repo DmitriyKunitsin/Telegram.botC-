@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace BOT
             SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
             conn.Open();
             SqlDataReader reader = null;
-            string getAllTren = $"SELECT TreningName FROM Treninng WHERE UserID={chatID}";
+            string getAllTren = $"SELECT TreningName,GroupMuscle FROM Treninng WHERE UserID={chatID}";
             SqlCommand command = new SqlCommand(getAllTren,conn);
             reader = command.ExecuteReader();
             return reader;
@@ -32,6 +33,9 @@ namespace BOT
                 string deleteName = $"DELETE Treninng WHERE TreningName=N'{treningName}' AND UserID={chatId}";
                 SqlCommand command = new SqlCommand(deleteName, conn);
                 command.ExecuteNonQuery();
+                string deleteExecises = $"DELETE Exercises WHERE TreningName=N'{treningName}' AND UserID={chatId}";
+                SqlCommand command2 = new SqlCommand(deleteExecises, conn);
+                command2.ExecuteNonQuery();
             }
             catch (Exception ex) {Console.WriteLine(ex.Message);}
             finally { conn.Close(); }
@@ -59,10 +63,11 @@ namespace BOT
                 if (ChatId == TestId || TestId != null)
                 {
                     conn.Open();
-                    string AddExecises = "INSERT INTO Exercises (UserID,TreningName,ExercisesName,CountRepertion,Weight)" +
-                        " VALUES (@UserID,@TreningName,@ExercisesName, @CountRepertion , @Weight)";
+                    string AddExecises = "INSERT INTO Exercises (UserID,NumberName,TreningName,ExercisesName,CountRepertion,Weight)" +
+                        " VALUES (@UserID,@NumberName,@TreningName,@ExercisesName, @CountRepertion , @Weight)";
                     SqlCommand command = new SqlCommand(AddExecises, conn);
                     command.Parameters.AddWithValue("@UserID", ChatId );
+                    command.Parameters.AddWithValue("@NumberName", trening.NumberName);
                     command.Parameters.AddWithValue("@TreningName", trening.TreningName );
                     command.Parameters.AddWithValue("@ExercisesName",trening.ExercisesName );
                     command.Parameters.AddWithValue("@CountRepertion",trening.CountRepertion );
@@ -80,7 +85,7 @@ namespace BOT
             }
             finally { conn.Close(); }
         }
-        public static bool ResitrTrueOrFalse(long chatId)
+        public static bool RegistrTrueOrFalse(long chatId)
         {
             SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
             conn.Open();
@@ -119,10 +124,11 @@ namespace BOT
                 string textInputList = $"Вы успешно создали программу \nНазвание : {vars.TreningName} \nГруппа мышц : {vars.GroupMuscle}" +
                     $"\nКолличество упражнений : {vars.CountExercises}";
                 Console.WriteLine($"Создал программу {update.Message.Chat.FirstName}");
-                string addTreningUsers = "INSERT INTO Treninng (Name,UserID,UserName,TreningName,GroupMuscle,CountExercises,CountRepertitions)" +
-                    " VALUES (@Name, @UserID , @UserName,@TreningName,@GroupMuscle,@CountExercises,@CountRepertitions)";
+                string addTreningUsers = "INSERT INTO Treninng (Name,NumberName,UserID,UserName,TreningName,GroupMuscle,CountExercises,CountRepertitions)" +
+                    " VALUES (@Name,@NumberName, @UserID , @UserName,@TreningName,@GroupMuscle,@CountExercises,@CountRepertitions)";
                 SqlCommand comm = new SqlCommand(addTreningUsers, conn);
                 comm.Parameters.AddWithValue("@Name", update.Message.Chat.FirstName);
+                comm.Parameters.AddWithValue("@NumberName", vars.NumberName);
                 comm.Parameters.AddWithValue("@UserName", update.Message.Chat.Username);
                 comm.Parameters.AddWithValue("@UserID", update.Message.Chat.Id);
                 comm.Parameters.AddWithValue("@TreningName", vars.TreningName);
@@ -130,7 +136,7 @@ namespace BOT
                 comm.Parameters.AddWithValue("@CountExercises", vars.CountExercises);
                 comm.Parameters.AddWithValue("@CountRepertitions", vars.CountRepertitions);
                 await comm.ExecuteNonQueryAsync();
-                await botClient.SendTextMessageAsync(update.Message.Chat.Id, textInputList);
+                await botClient.SendTextMessageAsync(update.Message.Chat.Id, textInputList, replyMarkup: Buttons.GetButtonBack());
             }
             catch (Exception ex) { Console.WriteLine(ex.Message); }
             finally { conn.Close(); }
@@ -189,6 +195,84 @@ namespace BOT
             var result = reader.HasRows;
             conn.Close();
             return result;
+        }
+        public static SqlDataReader OutputAllExercises(string trenName, long chatID)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            SqlDataReader reader = null;
+            string searchExercises = $"SELECT ExercisesName,CountRepertion,Weight FROM Exercises WHERE TreningName=N'{trenName}' and UserID={chatID}";
+            SqlCommand command = new SqlCommand(searchExercises, conn);
+            reader = command.ExecuteReader();
+            return reader;
+        }
+        public static SqlDataReader OutputAllExercises2(string trenName, long chatID)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            SqlDataReader reader = null;
+            string searchExercises = $"SELECT ExercisesName,NumberName,CountRepertion,Weight FROM Exercises WHERE TreningName=N'{trenName}' and UserID={chatID}";
+            SqlCommand command = new SqlCommand(searchExercises, conn);
+            reader = command.ExecuteReader();
+            return reader;
+        }
+        public static SqlDataReader OutputExecises(long chatID)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            SqlDataReader reader = null;
+            string searchExe = $"SELECT DISTINCT  TreningName  FROM Exercises WHERE UserID={chatID}";
+            SqlCommand command = new SqlCommand(searchExe, conn);
+            reader = command.ExecuteReader();
+            return reader;
+        }
+        public static SqlDataReader CountTreninigName(long chatID)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            SqlDataReader reader = null;
+            string countTren = $"SELECT COUNT(TreningName) FROM Treninng WHERE UserID={chatID}";
+            SqlCommand command = new SqlCommand(countTren, conn);
+            reader = command.ExecuteReader();
+            return reader;
+        }
+        public static SqlDataReader CountExecisesName(string trenName,long chatID)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            SqlDataReader reader = null;
+            string countTren = $"SELECT COUNT(ExercisesName) FROM Exercises WHERE TreningName=N'{trenName}' AND UserID={chatID}";
+            SqlCommand command = new SqlCommand(countTren, conn);
+            reader = command.ExecuteReader();
+            return reader;
+        }
+        public static void UpdateWeightInExercises(long chatID,int numberName, string trenName, decimal weight)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=(localdb)\\mssqllocaldb;Initial Catalog=TelegaBot;Trusted_Connection=True;");
+            conn.Open();
+            string updateWeight =$"UPDATE Exercises SET weight ={weight} WHERE UserID={chatID} " +
+                $"AND NumberName={numberName}  AND TreningName=N'{trenName}'";
+            SqlCommand command = new SqlCommand(updateWeight, conn);
+            command.ExecuteNonQuery();
+        }
+        public static string[] GetStringsExecises(string trenName,long chatID)
+        {
+            int count = 0;
+            var res = DataWorker.OutputAllExercises2(trenName,chatID);
+            var countExecises = CountExecisesName(trenName, chatID);
+            while (countExecises.Read()) { count = countExecises.GetInt32(0); }
+            int i = 0;
+            string[] strings = new string[count] ;
+            if (res.HasRows == true)
+            {
+                while (res.Read())
+                {
+                    strings[i] = res.GetString(0);
+                    i++;
+                }
+            }
+            else { Console.WriteLine("False"); }
+            return strings;
         }
     }
 
